@@ -1,7 +1,15 @@
-使用selenium对大兴机场与浦东机场爬取航班信息
+使用selenium对大兴机场与浦东机场爬取航班信息 2333 
 
-todo:
-1.大兴机场昨天实际到达时间有一个缺失
-2.重新封装的class在大兴爬取上仍有问题
+Sponsored by De
+
+python main.py DX 1     #爬大兴今天航班
+python main.py DX 0     #爬大兴昨天航班
+
+python main.py PD 1     #爬浦东今天航班
+python main.py PD 0     #爬浦东昨天航班
+
+todo: 
+1、延时点击改为等待
+
 
 
