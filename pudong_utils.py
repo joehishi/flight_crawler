@@ -9,6 +9,7 @@ import xlwt
 from lxml import etree
 import numpy as np
 import datetime
+import os
 
 
 class PD_spider:
@@ -53,13 +54,14 @@ class PD_spider:
 
         self.filename = './output/浦东机场_航班时间'
 
-        self.today = Today
+        self.today = int(Today)
 
     def run_all(self):
         if self.today == True:
             print("开始爬取今天浦东机场航班信息")
         else:
             print("开始爬取昨天浦东机场航班信息")
+        print("打开国内出发航班页面")
         self.open_page(Dom = True)
         self.crawl_all()
         timelist = str(self.cur.year) + str(self.cur.month) + str(self.cur.day)
@@ -69,11 +71,14 @@ class PD_spider:
         self.write_dom_byhour(workbook,'PVG S1 Dom daily by hour')
         self.write_dom_byperiod(workbook,'PVG S1 Dom daily by period')
         self.plan_times,self.actual_times,self.dsts,self.ports,self.planes = [],[],[],[],[]
+        print("打开国际出发航班页面")
         self.open_page(Dom = False)
         self.crawl_all()
         self.write_raw_intl_data(workbook,'PVG S1 intl raw data')
         self.write_intl_byhour(workbook,'PVG S1 intl daily by hour')
         self.write_intl_byperiod(workbook,'PVG S1 intl daily by period')
+        if not os.path.exists('output'):
+            os.mkdir('output')
         workbook.save(self.filename)
         print('航班信息写入excel成功')
 
@@ -81,23 +86,30 @@ class PD_spider:
     def open_page(self,Dom):                #打开页面
         self.driver = webdriver.Firefox(executable_path=self.driver_path)
         self.driver.get(self.url)
-        time.sleep(5)
+        time.sleep(3)
         if(len(self.driver.find_elements_by_xpath(self.start_button))):   #处理弹出页面
             self.driver.find_element_by_xpath(self.start_button).click()
-        time.sleep(1)
+        time.sleep(3)
         self.driver.find_element_by_xpath(self.airport_col).click()   
+        time.sleep(1)
         self.driver.find_element_by_xpath(self.pudong_airport_col).click()   #选浦东机场
         time.sleep(1)
         if(self.today == False):
+            print('选择昨天')
+            time.sleep(3)
             self.driver.find_element_by_xpath(self.select_day_col).click()      #选昨天
+            time.sleep(1)
             self.driver.find_element_by_xpath(self.yesterday_col).click()  
             time.sleep(1)
             self.cur = datetime.date.today() + datetime.timedelta(-1)
         else:
+            print('选择今天')
             self.cur = datetime.datetime.now()
             
-        if(Dom == False):                                                     #国际出发
+        if(Dom == False):  
+            time.sleep(3)                                                   #国际出发
             self.driver.find_element_by_xpath(self.direction_col).click()
+            time.sleep(1)
             self.driver.find_element_by_xpath(self.intl_dep_col).click()        
             time.sleep(1)
         self.driver.find_element_by_xpath(self.search_button).click()                #开始搜索

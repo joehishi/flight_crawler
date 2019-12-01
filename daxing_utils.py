@@ -8,6 +8,7 @@ import pandas as pd
 import xlwt
 import datetime
 import numpy as np
+import os
 
 
 class DX_spider:
@@ -40,13 +41,13 @@ class DX_spider:
         self.dom_dep_byhour = np.zeros((24))    #仅国内出发 登机口A 的全部航班 by hour
         self.intl_dep_byhour = np.zeros((24))    #仅国际出发 登机口E 的全部航班 by hour
 
-        self.today = Today
+        self.today = int(Today)
 
         self.filename = './output/大兴机场_航班时间'
 
         self.row = 0
 
-        if(Today == False):
+        if(self.today == False):
             self.cur = datetime.date.today() + datetime.timedelta(-1)
         else:
             self.cur = datetime.datetime.now()
@@ -78,7 +79,8 @@ class DX_spider:
             self.write_dep_raw_data(sheet)
             self.write_hour_data(workbook,'A-by ',self.dom_dep_byhour)
             self.write_hour_data(workbook,'E-by ',self.intl_dep_byhour)
-
+        if not os.path.exists('output'):
+            os.mkdir('output')
         workbook.save(self.filename)
         print('航班信息写入excel成功')
 
@@ -87,11 +89,15 @@ class DX_spider:
         self.driver.get(url)
         time.sleep(3)
         if self.today == False:
+            print('选择昨天')
             self.driver.find_element_by_xpath(self.day_col).click()
+            time.sleep(1)
             self.driver.find_element_by_xpath(self.yesterday_col).click()  #选择昨天
             time.sleep(2)
+        else:
+            print('选择今天')
         while(len(self.driver.find_elements_by_xpath(self.more_msg))):
-            time.sleep(1)
+            time.sleep(2)
             self.driver.find_element_by_xpath(self.more_msg + '/span').click()
         time.sleep(1)
 
@@ -101,7 +107,7 @@ class DX_spider:
         sel = set(range(total_num)) 
 
         ports = self.driver.find_elements_by_xpath(self.port_msg)
-        if arr:
+        if arr == True:
             for i in range(total_num):    #剔除国际到达   基本也没有国际到达的..
                 if(ports[i].text[0] == 'Ｅ'):
                     sel.discard(i)
